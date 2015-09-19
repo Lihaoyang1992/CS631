@@ -25,8 +25,8 @@ int main() {
 			scanf("%d", &userInput);
 		}
 
-		if ((fd = open(myfifo, O_WRONLY)) < 0)
-                        perror("Error: fifo error");
+		if ((fd = open(myfifo, O_WRONLY | O_NONBLOCK)) < 0)
+        	perror("Error: fifo error");
 		write(fd, &userInput, sizeof(userInput));
 		close(fd);
 
