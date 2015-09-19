@@ -1,9 +1,11 @@
+#include <fcntl.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <stdio.h>
 int main() {
 	int fd;
-	pid_t pidi, w;
+	pid_t pid, w;
 	int userInput = -1;
 	int status;
 	
@@ -16,16 +18,15 @@ int main() {
 		perror("Error: can't create a child process");
 		return 1;
 	} else if (pid == 0) {
-		if (fd = open(myfifo, O_WRONLY) < 0)
-			perror("Error: fifo error");
 		// child: write only, so close the read-descriptor
 		while (userInput > 255 || userInput < 0) {
 			printf("Please input a valid integer (0 ~ 255): ");
 			scanf("%d", &userInput);
 		}
-		
+
+		if ((fd = open(myfifo, O_WRONLY)) < 0)
+                        perror("Error: fifo error");
 		write(fd, &userInput, sizeof(userInput));
-		
 		close(fd);
 
 		// remove the FIFO
@@ -45,7 +46,7 @@ int main() {
 		} else if (WIFCONTINUED(status)) {
 			printf("continued\n");
 		}
-		if (fd = open(myfifo, O_RDONLY) < 0)
+		if ((fd = open(myfifo, O_RDONLY)) < 0)
 			perror("Error: fifo error");
 		read(fd, &userInput, sizeof(userInput));
 		printf("Hi, I'm parent, my child %d just pass me %d\n", pid, userInput);
