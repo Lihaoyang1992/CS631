@@ -3,7 +3,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <stdio.h>
-/././././././././
+
 int main() {
 	int fd;
 	pid_t pid, w;
