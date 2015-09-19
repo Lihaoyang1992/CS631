@@ -12,14 +12,32 @@ int main() {
 	
 	char* myfifo = "/tmp/myfifo";
 
-	// make a fifo
-	mkfifo(myfifo, 0666);
-
 	if ((pid = fork()) < 0) {
 		perror("Error: can't create a child process");
 		return 1;
 	} else if (pid == 0) {
-		// wait parents to set read fifo: read only, so close the write-descriptor
+		// make a fifo
+		mkfifo(myfifo, 0666);
+
+		// child: write only, so close the read-descriptor
+		while (userInput > 255 || userInput < 0) {
+			printf("Please input a valid integer (0 ~ 255): ");
+			scanf("%d", &userInput);
+		}
+
+		if ((fd = open(myfifo, O_WRONLY/* | O_NONBLOCK*/)) < 0)
+        	perror("Error: fifo error");
+		write(fd, &userInput, sizeof(userInput));
+		close(fd);
+
+		// remove the FIFO
+		unlink(myfifo);
+	} else {
+		// make a fifo
+		mkfifo(myfifo, 0666);
+
+		// parent: read only, so close the write-descriptor
+		/*
 		w = waitpid(getppid(), &status, WUNTRACED | WCONTINUED);
 		if (w == -1) {
 			perror("Error: can't wait child");
@@ -33,23 +51,9 @@ int main() {
 		} else if (WIFCONTINUED(status)) {
 			printf("continued\n");
 		}
-
-		// child: write only, so close the read-descriptor
-		while (userInput > 255 || userInput < 0) {
-			printf("Please input a valid integer (0 ~ 255): ");
-			scanf("%d", &userInput);
-		}
-
-		if ((fd = open(myfifo, O_WRONLY | O_NONBLOCK)) < 0)
-        	perror("Error: fifo error");
-		write(fd, &userInput, sizeof(userInput));
-		close(fd);
-
-		// remove the FIFO
-		unlink(myfifo);
-	} else {
+		*/
 		// parent to read
-		if ((fd = open(myfifo, O_RDONLY | O_NONBLOCK)) < 0)
+		if ((fd = open(myfifo, O_RDONLY/* | O_NONBLOCK*/)) < 0)
 			perror("Error: fifo error");
 		read(fd, &userInput, sizeof(userInput));
 		printf("Hi, I'm parent, my child %d just pass me %d\n", pid, userInput);
