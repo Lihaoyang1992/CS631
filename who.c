@@ -25,7 +25,7 @@ int main()
 	close(utmpfd);
 	return 0;
 }
-show_info(struct utmp * utbufp)
+void show_info(struct utmp * utbufp)
 {
 	if (utbufp->ut_type != USER_PROCESS)
 		return;
