@@ -18,14 +18,14 @@ main(int argc, char const *argv[])
 	if (argc != 3)
 	{
 		fprintf(stderr, "usage: %s source destination\n", argv[0]);
-		return 1
+		return 1;
 	}
 
 	if ((in_fd = open(argv[1], O_RDONLY)) == -1)
 		/* oops("Cannot open", argv[1]); */
 		return 2;
 
-	if ((out_fd = create(argv[2], COPYMODE)) == -1)
+	if ((out_fd = creat(argv[2], COPYMODE)) == -1)
 		/* oops("Cannot create", argv[2]); */
 		return 3;
 
