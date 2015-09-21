@@ -4,11 +4,9 @@
 #include	<sys/stat.h>
 #include	<string.h>
 
-#define	NAMESIZE	1024
 #define	BUFFERSIZE	4096
-#define	COPYMODE	0644
 #define	ILLARGUMENT	1
-#define	FAILACC	2
+#define	FAILACCE	2
 #define	FAILOPEN	3
 #define	FAILCREATE	4
 #define	FAILREAD	5
@@ -39,7 +37,7 @@ main(int argc, char *argv[])
 	if (stat(in_file, &file_stat) < 0)
 	{
 		perror("Access file fail!");
-		return FAILACC;
+		return FAILACCE;
 	}
 
 	/* get the output file */
