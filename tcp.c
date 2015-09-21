@@ -18,7 +18,7 @@
 char * get_file(char *, char *);
 
 int
-main(int argc, char const *argv[])
+main(int argc, char *argv[])
 {
 	struct stat	file_stat;
 	char	buf[BUFFERSIZE];
@@ -38,40 +38,23 @@ main(int argc, char const *argv[])
 	/* check status */
 	if (stat(argv[2], &file_stat) < 0)
 	{
-		fprintf(stderr, "Access %s fail!\n", argv[1]);
-		perror(stderr);
+		perror("Access file fail!");
 		return FAILACC;
 	}
 
 	/* get the output file */
 	out_fd = get_file(argv[2], in_file);
-	/*
-	if (S_ISDIR(file_stat.st_mode))
-	{
-		// argv[2] is a dir 
-		strcpy(filename, argv[1]);
-		strcpy(filename, argv[2]);
-		return create_copy(in_fd, filename);
-	}
-	else
-	{
-		// argv[2] is not a dir 
-		strcpy(filename, argv[2]);
-		return normal_copy(in_fd, filename);
-	}
-	*/
+
 	/* open in_file */
 	if ((in_fd = open(in_file, O_RDONLY)) == -1) {
-		fprintf(stderr, "Open %s fail!\n", in_file);
-		perror(stderr);
+		perror("Open file fail!");
 		return FAILOPEN;
 	}
 
 	/* open or create out_file */
 	if ((out_fd = open(out_file, O_WRONLY|O_CREAT, O_EXCL|S_IRUSR|S_IWUSR)) < 0)
 	{
-		fprintf(stderr, "Create %s fail!", out_file);
-		perror(stderr);
+		perror("Create file fail!");
 		return FAILCREATE;
 	}
 
@@ -79,37 +62,29 @@ main(int argc, char const *argv[])
 	while ((n_chars = read(in_fd, buf, BUFFERSIZE)) > 0)
 	{
 		if (write(out_fd, buf, n_chars) != n_chars)
-			return 4;
-		fprintf(stderr, "Write to %s fail!", out_file);
-		perror(stderr);
-		return FAILWRITE;
+		{
+			perror("Write to file fail!");
+			return FAILWRITE;
+		}
 	}
 
 	/* read error occurs */
 	if (n_chars == -1)
 	{
-		fprintf(stderr, "Read from %s fail!", in_file);
-		perror(stderr);
+		perror("Read from file fail!");
 		return FAILREAD
 	}
 
 	/* close error occurs */
-	if (close(in_fd) == -1)
+	if (close(in_fd) == -1 || close(out_fd) == -1)
 	{
-		fprintf(stderr, "Close %s fail!", in_file);
-		perror(stderr);
-		return FAILCLOSE;
-	}
-
-	if (close(out_fd) == -1)
-	{
-		fprintf(stderr, "Close %s fail!", out_file);
-		perror(stderr);
+		perror("Close file fail!");
 		return FAILCLOSE;
 	}
 
 	return 0;
 }
+
 /*
  * get the file path and name
  */
@@ -120,12 +95,12 @@ get_file(char *path, char * in_file)
 
 	fopen(path, "a");
 
+	/* check status */
 	if (stat(path, &file_stat) < 0)
-	{
-		fprintf(stderr, "Open %s fail", path);
-		perror(stderr);
-	}
-	if (S_ISDIR(file_stat.st_mode))	/* path is a directory */
+		perror("Open file fail!");
+
+	/* check whether path is a directory */
+	if (S_ISDIR(file_stat.st_mode))
 			strcat(path, in_file);
 
 	return path;
