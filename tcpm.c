@@ -79,6 +79,13 @@ main(int argc, char *argv[])
 		return LSEEKFAIL;
 	}
 
+	/*Write file test*/
+    if (write(out_fd,"",1) != 1)
+    {
+        perror("Write to file fail!");
+        return FAILWRITE;
+    }
+
 	/* map in_file to memory*/
 	if ((file_read_buf = 
 		mmap(0, file_size, PROT_READ, MAP_SHARED, in_fd, 0)) == MAP_FAILED)
