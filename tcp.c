@@ -43,7 +43,7 @@ main(int argc, char *argv[])
 	}
 
 	/* get the output file */
-	out_fd = get_file(argv[2], in_file);
+	out_file = get_file(argv[2], in_file);
 
 	/* open in_file */
 	if ((in_fd = open(in_file, O_RDONLY)) == -1) {
@@ -72,7 +72,7 @@ main(int argc, char *argv[])
 	if (n_chars == -1)
 	{
 		perror("Read from file fail!");
-		return FAILREAD
+		return FAILREAD;
 	}
 
 	/* close error occurs */
