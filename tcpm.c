@@ -79,12 +79,8 @@ main(int argc, char *argv[])
 		return LSEEKFAIL;
 	}
 
-	/*Write file test*/
-    if (write(out_fd,"",1) != 1)
-    {
-        perror("Write to file fail!");
-        return FAILWRITE;
-    }
+	/* truncate destination file before mmap it*/
+	ftruncate(out_fd, file_size);
 
 	/* map in_file to memory*/
 	if ((file_read_buf = 
