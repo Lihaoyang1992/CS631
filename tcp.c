@@ -15,8 +15,7 @@
 #define	FAILWRITE	6
 #define	FAILCLOSE	7
 
-int	create_copy(int, char *);
-int	normal_copy(int, char *);
+char * get_file(char *, char *)
 
 int
 main(int argc, char const *argv[])
@@ -37,7 +36,8 @@ main(int argc, char const *argv[])
 	}
 
 	/* check status */
-	if (stat(argv[2], &file_stat) < 0) {
+	if (stat(argv[2], &file_stat) < 0)
+	{
 		fprintf(stderr, "Access %s fail!\n", argv[1]);
 		perror(stderr);
 		return FAILACC;
