@@ -14,7 +14,6 @@
 #include	<sys/mman.h>
 #include	<sys/types.h>
 
-#define	BUFFERSIZE	4096
 #define	ILLARGUMENT	1
 #define	FAILACCE	2
 #define	FAILOPEN	3
@@ -31,13 +30,11 @@ int
 main(int argc, char *argv[])
 {
 	struct stat	file_stat;
-	char	buf[BUFFERSIZE];
 	char *	in_file = argv[1];
 	char *	out_file;
 	void *	file_read_buf;
 	void *	file_write_buf;
-	int	n_chars,
-		in_fd,
+	int	in_fd,
 		out_fd;
 	size_t	file_size;
 	mode_t	file_mode;
