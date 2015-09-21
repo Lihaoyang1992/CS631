@@ -1,5 +1,5 @@
 /* 
- * tcp.c
+ * tcpm.c
  * Homework #2 for Stevens CS-631
  * Advanced Programming in Unix System
  * Written by Haoyang Li
