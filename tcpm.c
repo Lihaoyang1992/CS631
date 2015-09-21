@@ -60,7 +60,7 @@ main(int argc, char *argv[])
 	out_file = get_file(argv[2], in_file);
 
 	/* open in_file */
-	if ((in_fd = open(in_file, O_RDONLY)) == -1) {
+	if ((in_fd = open(in_file, O_RDONLY)) < 0) {
 		perror("Open file fail!");
 		return FAILOPEN;
 	}
@@ -73,7 +73,7 @@ main(int argc, char *argv[])
 	}
 
 	/* lseek out_file */
-	if (lseek(out_fd, file_size - 1, SEEK_SET) == -1)
+	if (lseek(out_fd, file_size - 1, SEEK_SET) < 0)
 	{
 		perror("Lseek file fail!");
 		return LSEEKFAIL;
@@ -99,7 +99,7 @@ main(int argc, char *argv[])
     memcpy(file_write_buf, file_read_buf, file_size);
 
 	/* close error occurs */
-	if (close(in_fd) == -1 || close(out_fd) == -1)
+	if (close(in_fd) < 0 || close(out_fd) < 0)
 	{
 		perror("Close file fail!");
 		return FAILCLOSE;
