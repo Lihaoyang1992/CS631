@@ -36,7 +36,7 @@ main(int argc, char *argv[])
 	}
 
 	/* check status */
-	if (stat(argv[2], &file_stat) < 0)
+	if (stat(in_file, &file_stat) < 0)
 	{
 		perror("Access file fail!");
 		return FAILACC;
