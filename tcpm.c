@@ -66,7 +66,7 @@ main(int argc, char *argv[])
 	}
 
 	/* open or create out_file */
-	if ((out_fd = open(out_file, O_WRONLY|O_CREAT, file_mode)) < 0)
+	if ((out_fd = open(out_file, O_RDWR|O_CREAT|O_TRUNC, file_mode)) < 0)
 	{
 		perror("Create file fail!");
 		return FAILCREATE;
@@ -81,7 +81,7 @@ main(int argc, char *argv[])
 
 	/* map in_file to memory*/
 	if ((file_read_buf = 
-		mmap(0, file_size, PROT_READ, MAP_SHARED, in_fd, 0)) < 0)
+		mmap(0, file_size, PROT_READ, MAP_SHARED, in_fd, 0)) == MAP_FAILED)
 	{
         perror("Mmap file fail!");
         return MMAPFAIL;
@@ -89,14 +89,14 @@ main(int argc, char *argv[])
 
 	/* map out_file to memory*/
 	if ((file_write_buf = 
-		mmap(0, file_size, PROT_READ | PROT_WRITE, MAP_SHARED, in_fd, 0)) < 0)
+		mmap(0, file_size, PROT_READ | PROT_WRITE, MAP_SHARED, in_fd, 0)) == MAP_FAILED)
 	{
         perror("Mmap file fail!");
         return MMAPFAIL;
     }
 
     /* memory copy from in_file to out_file */
-    memcpy(file_read_buf, file_write_buf, file_size);
+    memcpy(file_write_buf, file_read_buf, file_size);
 
 	/* close error occurs */
 	if (close(in_fd) == -1 || close(out_fd) == -1)
