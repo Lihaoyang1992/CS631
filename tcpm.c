@@ -81,7 +81,7 @@ main(int argc, char *argv[])
 
 	/* map in_file to memory*/
 	if ((file_read_buf = 
-		mmap(0, file_size, PROT_READ, MAP_SHARED, in_fd, 0)) == MAP_FAILED)
+		mmap(0, file_size, PROT_READ, MAP_SHARED, in_fd, 0)) < 0)
 	{
         perror("Mmap file fail!");
         return MMAPFAIL;
@@ -89,7 +89,7 @@ main(int argc, char *argv[])
 
 	/* map out_file to memory*/
 	if ((file_write_buf = 
-		mmap(0, file_size, PROT_READ | PROT_WRITE, MAP_SHARED, in_fd, 0)) == MAP_FAILED)
+		mmap(0, file_size, PROT_READ | PROT_WRITE, MAP_SHARED, in_fd, 0)) < 0)
 	{
         perror("Mmap file fail!");
         return MMAPFAIL;
