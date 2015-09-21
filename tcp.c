@@ -15,7 +15,7 @@
 #define	FAILWRITE	6
 #define	FAILCLOSE	7
 
-char * get_file(char *, char *)
+char * get_file(char *, char *);
 
 int
 main(int argc, char const *argv[])
