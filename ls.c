@@ -19,7 +19,7 @@
 void
 mode_to_letter(int mode, char str[])
 {
-	strcpy(str, "---------");
+	strcpy(str, "----------");
 
 	if(S_ISDIR(mode)) str[0] = 'd';
 	if(S_ISCHR(mode)) str[0] = 'c';
