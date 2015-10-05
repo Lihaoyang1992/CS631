@@ -6,18 +6,15 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/ioctl.h>
 
 #include <dirent.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <unistd.h>
 #include <pwd.h>
 #include <grp.h>
 
-int win_width = 80;
 
 void
 mode_to_letter(int mode, char str[])
@@ -93,38 +90,17 @@ void do_stat(char* filename)
 		show_file_info(filename, &info);
 }
 
-void 
-do_multi_columns (struct dirent * dirp)
-{
-	struct winsize win;
-	if (isatty(STDOUT_FILENO)) {
-		if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &win) == 0 && win.ws_col > 0)
-			
-	}
-}
-
 void
 do_ls (char dirname[])
 {
-	int	i, max_name;
 	DIR*	dp;
 	struct	dirent *dirp;
-	char*	filenames;
 
 	if ((dp = opendir(dirname)) == NULL ) {
 		fprintf(stderr, "can't open '%s'\n", dirname);
 	} else {
-		for (i = 0, max_name = 0; (dirp = readdir(dp)) != NULL; i++ ) {
-			// do_stat(dirp->d_name);
-			// filenames[i] = dirp->d_name;
-			if (dirp->d_reclen > max_name)
-				max_name = dirp->d_reclen;
-		}
-/*************************** marked ***************************/
-		filename = malloc(sizeof(char*) * --i);
-		for (i = 0, max_name = 0; (dirp = readdir(dp)) != NULL; i++ ) {
-			filenames[i] = dirp->d_name;
-                 }
+		while ( (dirp = readdir(dp)) != NULL )
+			do_stat(dirp->d_name);
 		closedir(dp);
 	}
 }
@@ -132,12 +108,6 @@ do_ls (char dirname[])
 int
 main(int argc, char **argv)
 {
-	struct winsize win;
-	if (isatty(STDOUT_FILENO)) {
-		if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &win) == 0 && win.ws_col > 0)
-			win_width = win.ws_col;
-	}
-	
 	if (argc > 2) {
 		fprintf(stderr, "usage: %s dir_name\n", argv[0]);
 		exit(1);

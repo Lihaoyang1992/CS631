@@ -1,14 +1,11 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <stdio.h>
-#include <stdlib.h>
-int main(int argc, char* argv[]) {
+int main() {
 	pid_t pid, w;
 	int fd[2];
-	int status;
-	/*int userInput = (atoi)(argv[1]);*/
 	int userInput = -1;
-	int fd_count = argc - 1;
+	int status;
 
 	if (pipe(fd) < 0)
 		perror("Error: pipe error");
