@@ -25,25 +25,24 @@ int main() {
 			scanf("%d", &userInput);
 		}
 
-		if ((fd = open(myfifo, O_WRONLY/* | O_NONBLOCK*/)) < 0)
-        	perror("Error: fifo error");
+		if ((fd = open(myfifo, O_WRONLY | O_NONBLOCK)) < 0)
+        		perror("Error: fifo error");
 		write(fd, &userInput, sizeof(userInput));
 		close(fd);
-
-		// remove the FIFO
 		unlink(myfifo);
 	} else {
 		// make a fifo
 		mkfifo(myfifo, 0666);
-
 		// parent: read only, so close the write-descriptor
-		/*
-		w = waitpid(getppid(), &status, WUNTRACED | WCONTINUED);
+		if ((fd = open(myfifo, O_RDONLY)) < 0)
+			perror("Error: fifo error");
+		read(fd, &userInput, sizeof(userInput));
+		w = waitpid(pid, &status, WUNTRACED | WCONTINUED);
 		if (w == -1) {
 			perror("Error: can't wait child");
 		}
 		if (WIFEXITED(status)) {
-			printf("Child exited status = %d\n", WEXITSTATUS(status));
+			printf("Child %d exited correctly\n", pid);
 		} else if (WIFSIGNALED(status)) {
 			printf("killed by sigal %d\n", WTERMSIG(status));
 		} else if (WIFSTOPPED(status)) {
@@ -51,11 +50,6 @@ int main() {
 		} else if (WIFCONTINUED(status)) {
 			printf("continued\n");
 		}
-		*/
-		// parent to read
-		if ((fd = open(myfifo, O_RDONLY/* | O_NONBLOCK*/)) < 0)
-			perror("Error: fifo error");
-		read(fd, &userInput, sizeof(userInput));
 		printf("Hi, I'm parent, my child %d just pass me %d\n", pid, userInput);
 		close(fd);
 	}
