@@ -1,0 +1,8 @@
+#TITLE: CS631-APUE-Midterm
+#AUTHOR: ZHIZHUO DING
+
+The usage of fts family function are refered to the NetBSD's implementation
+
+The -C -x are not extremely suited to the win size, but it looks fine
+
+The default setting is -C(not -1 because I implemented the -C)
