@@ -17,7 +17,16 @@
 #include <pwd.h>
 #include <grp.h>
 
+#define MAX_NAME_SIZE 256
+
 int win_width = 80;
+
+int
+alpha_com(const void * a, const void * b)
+{
+	/* implement a compare function in alphabetic order */
+	return 0;
+}
 
 void
 mode_to_letter(int mode, char str[])
@@ -94,13 +103,17 @@ void do_stat(char* filename)
 }
 
 void 
-do_multi_columns (struct dirent * dirp)
+do_multi_columns (DIR* dirp, int max_name)
 {
 	struct winsize win;
 	if (isatty(STDOUT_FILENO)) {
 		if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &win) == 0 && win.ws_col > 0)
-			
+			win_width = win.ws_col;
 	}
+
+	/* get the ceil of win_width/max_name */
+	int columns = (win_width + max_name - 1)/max_name;
+
 }
 
 void
@@ -109,35 +122,36 @@ do_ls (char dirname[])
 	int	i, max_name;
 	DIR*	dp;
 	struct	dirent *dirp;
+	char	path_name[MAX_NAME_SIZE];
 	char*	filenames;
 
 	if ((dp = opendir(dirname)) == NULL ) {
 		fprintf(stderr, "can't open '%s'\n", dirname);
 	} else {
 		for (i = 0, max_name = 0; (dirp = readdir(dp)) != NULL; i++ ) {
-			// do_stat(dirp->d_name);
+			sprintf(path_name, "%s/%s", dirname, dirp->d_name);
+			do_stat(path_name);
 			// filenames[i] = dirp->d_name;
 			if (dirp->d_reclen > max_name)
 				max_name = dirp->d_reclen;
 		}
 /*************************** marked ***************************/
+	/*
+		do_multi_columns(dp, max_name);
 		filename = malloc(sizeof(char*) * --i);
 		for (i = 0, max_name = 0; (dirp = readdir(dp)) != NULL; i++ ) {
 			filenames[i] = dirp->d_name;
-                 }
+		}
+		// sort files by names (alphabetic)
+		qsort(filenames, --i, sizeof(char*), alpha_com);
 		closedir(dp);
+	*/
 	}
 }
 
 int
 main(int argc, char **argv)
 {
-	struct winsize win;
-	if (isatty(STDOUT_FILENO)) {
-		if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &win) == 0 && win.ws_col > 0)
-			win_width = win.ws_col;
-	}
-	
 	if (argc > 2) {
 		fprintf(stderr, "usage: %s dir_name\n", argv[0]);
 		exit(1);

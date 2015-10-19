@@ -21,38 +21,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include "l.h"
-
+#include "ls.h"
+#include "print.c"
 
 #ifndef S_IFWHT
 	#define S_IFWHT 0170000
 #endif
-
-
-// define flags
-int Aflag;
-int aflag;
-int cflag;
-int dflag;
-int Fflag;
-int fflag;
-int Rflag;
-int iflag;
-int lflag;
-int nflag;
-int sflag;
-int Sflag;
-int qflag;
-int wflag;
-int tflag;
-int cflag;
-int uflag;
-int xflag;
-int Cflag;
-int kflag;
-int hflag;
-int rflag;
-int oneflag;
 
 int outputnum;		/*all output number including error message*/
 int outputentnum;	/*all valid output number*/
@@ -90,32 +64,39 @@ int has_blk_or_char;
 blksize_t blocksize;
 int totalblknum;
 
+// define flags struct
+struct flags
+{
+	int Aflag;
+	int aflag;
+	int Cflag;
+	int cflag;
+	int dflag;
+	int Fflag;
+	int fflag;
+	int hflag;
+	int iflag;
+	int kflag;
+	int lflag;
+	int nflag;
+	int Sflag;
+	int sflag;
+	int oneflag;
+	int qflag;
+	int Rflag;
+	int rflag;
+	int tflag;
+	int uflag;
+	int wflag;
+	int xflag;	
+} all_flags;
+
 void 
 usage()
 {
 	fprintf(stderr, "%s [ −AacdFfhiklnqRrSstuw1Cx ][file ...]\n", getprogname());
 	exit(0);
 }
-
-
-void print_name(const char* name)
-{
-	const char *p = name;
-	if (qflag)
-	{
-		while( (*p) != '\0') {
-			if (isgraph(*p) != 0) {
-				(void)putchar(*p);
-			} else {
-				(void)putchar('?');
-			}
-			p++;
-		}
-	} else {
-		printf("%s", name);
-	}
-}
-
 
 /*
  * output each entries based on the configuration
@@ -136,16 +117,16 @@ void cook_output(FNODE *node)
 	int blklen;
 	time_t output_time;
 
-	if (iflag) {
+	if (all_flags.iflag) {
 		(void)printf("%*ld ", max_in_len, statp->st_ino);
 	}
 
-	if (sflag) {
+	if (all_flags.sflag) {
 		blklen = ceil((double)statp->st_blocks*512 / (double)blocksize);
 		(void)printf("%*d ", max_blk_len, blklen);
 	}
 
-	if (lflag || nflag) {
+	if (all_flags.lflag || all_flags.nflag) {
 		strmode(mode ,modestr);
 		modestr[10] = '\0';
 		(void)printf("%s ", modestr);
@@ -165,10 +146,10 @@ void cook_output(FNODE *node)
 			(void)printf("%*d, %*d ", max_major_len, major(rdev), max_minor_len, minor(rdev));
 
 		} else {
-			if (kflag) {
+			if (all_flags.kflag) {
 				(void)printf("%*llu ", max_sz_len, (long long unsigned int)ceil((double)statp->st_size/divide_term));
 			
-			} else if (hflag) {
+			} else if (all_flags.hflag) {
 				
 				double ret = statp->st_size;
 				int step = 0;
@@ -190,9 +171,9 @@ void cook_output(FNODE *node)
 		}
 
 
-		if (cflag) {
+		if (all_flags.cflag) {
 			output_time = statp->st_ctime;
-		} else if (uflag) {
+		} else if (all_flags.uflag) {
 			output_time = statp->st_atime;
 		} else {
 			output_time = statp->st_mtime;
@@ -203,16 +184,16 @@ void cook_output(FNODE *node)
 		(void)printf("%s ", outtime);
 	}
 
-	print_name(ent->fts_name);
+	print_name(ent->fts_name, all_flags.qflag);
 
-	if (Fflag) {
+	if (all_flags.Fflag) {
 		c = '\0';
 		switch(mode & S_IFMT) {
 			case S_IFDIR:
 				c = '/';
 				break;
 			case S_IFLNK:
-				if (lflag||nflag) {
+				if (all_flags.lflag||all_flags.nflag) {
 					break;
 				}
 				c = '@';
@@ -236,7 +217,7 @@ void cook_output(FNODE *node)
 	}
 
 	//special case for symlink
-	if (S_ISLNK(mode) && (lflag || nflag)) {
+	if (S_ISLNK(mode) && (all_flags.lflag || all_flags.nflag)) {
 		if (snprintf(path, PATH_MAX, "%s/%s", ent->fts_path, ent->fts_name) < 0) {
 			fprintf(stderr, "%s: snprintf error %s\n", getprogname(), strerror(errno));
 			exit(EXIT_FAILURE);
@@ -251,6 +232,12 @@ void cook_output(FNODE *node)
 }
 
 
+int compare_num (const void * a, const void * b)
+{
+  return ( *(int*)a - *(int*)b );
+}
+
+
 void print_col(FNODEP ent, int width)
 {
 	int blklen;
@@ -261,23 +248,23 @@ void print_col(FNODEP ent, int width)
 	char *p = name;
 	
 
-	if (iflag) {
+	if (all_flags.iflag) {
 		(void)printf("%*ld ", max_in_len ,statp->st_ino);
 	}
 
-	if (sflag) {
+	if (all_flags.sflag) {
 		blklen = ceil((double)statp->st_blocks*512 / (double)blocksize);
 		(void)printf("%*d ", max_blk_len ,blklen);
 	}
 
-	if (Fflag) {
+	if (all_flags.Fflag) {
 		c = ' ';
 		switch(mode & S_IFMT) {
 			case S_IFDIR:
 				c = '/';
 				break;
 			case S_IFLNK:
-				if (lflag) {
+				if (all_flags.lflag) {
 					break;
 				}
 				c = '@';
@@ -300,7 +287,7 @@ void print_col(FNODEP ent, int width)
 	}
 
 	while( (*p) != '\0') {
-		if (qflag) {
+		if (all_flags.qflag) {
 			if (isgraph(*p) != 0) {
 				(void)putchar(*p);
 			} else {
@@ -311,17 +298,11 @@ void print_col(FNODEP ent, int width)
 		}
 		p++;
 	}
-	if (Fflag) {
+	if (all_flags.Fflag) {
 		putchar(c);
 	}
 	printf("%*s", (int)(-width + (p - name)),"");
 	printf("  ");
-}
-
-
-int compare_num (const void * a, const void * b)
-{
-  return ( *(int*)a - *(int*)b );
 }
 
 
@@ -343,17 +324,17 @@ void cook_multi_cols()
 	while((p = cldlist_get_next()) != NULL) {
 		int len = strlen(p->ftsentryptr->fts_name);
 
-		if (iflag) {
+		if (all_flags.iflag) {
 			arr[i] += max_in_len + 1;
 		}
 
-		if (sflag) {
+		if (all_flags.sflag) {
 			arr[i] += max_blk_len + 1;
 		}
 
 		arr[i] += len;
 
-		if (Fflag) {
+		if (all_flags.Fflag) {
 			arr[i]++;
 		}
 		arr[i] += 2;
@@ -395,7 +376,7 @@ void cook_multi_cols()
 	row = ceil((double)count/(double)col);
 	col = ceil((double)count/(double)row);
 
-	if (Cflag) {
+	if (all_flags.Cflag) {
 		for (i = 0; i < count; ++i) {
 			int c = i/row; 
 			int r = i%row;
@@ -458,18 +439,18 @@ void traverse_children(FTSENT* parent)
 		(void)putchar('\n');
 	}
 
-	if (outputnum > 1 || Rflag) {
+	if (outputnum > 1 || all_flags.Rflag) {
 		(void)printf("%s:\n", parent->fts_path);
 	}
 
 	outputentnum++;
 	outputnum++;
 
-	if ( lflag || nflag || (sflag && isatty(STDOUT_FILENO))) {
+	if ( all_flags.lflag || all_flags.nflag || (all_flags.sflag && isatty(STDOUT_FILENO))) {
 		(void)printf("total %d\n", totalblknum);
 	}
 	
-	if ( lflag || nflag || oneflag) {
+	if ( all_flags.lflag || all_flags.nflag || all_flags.oneflag) {
 		cldlist_reset_ptr();
 		while( (cur = cldlist_get_next()) != NULL ) {
 			cook_output(cur);
@@ -477,7 +458,7 @@ void traverse_children(FTSENT* parent)
 		return;
 	}
 
-	if (xflag || Cflag) {
+	if (all_flags.xflag || all_flags.Cflag) {
 		cook_multi_cols();
 		return;
 	}
@@ -502,20 +483,20 @@ void cook_entry(FTSENT* ent)
 		max_fn_len = strlen(ent->fts_name);
 	}
 
-	if (iflag) {
+	if (all_flags.iflag) {
 		if (statp->st_ino > max_st_ino) {
 			max_st_ino = statp->st_ino;
 		}
 	}
 
-	if (sflag || lflag || nflag) {
+	if (all_flags.sflag || all_flags.lflag || all_flags.nflag) {
 		if (statp->st_blocks > max_st_blocks) {
 			max_st_blocks = statp->st_blocks;
 		}
 		totalblknum += statp->st_blocks;
 	}
 
-	if (lflag || nflag) {
+	if (all_flags.lflag || all_flags.nflag) {
 		/*
 		 * handle the special case for CHR/BLK 
 		 */
@@ -550,7 +531,7 @@ void cook_entry(FTSENT* ent)
 			exit(EXIT_FAILURE);
 		}
 
-		if (pwdp == NULL || pwdp->pw_name == NULL || nflag) {
+		if (pwdp == NULL || pwdp->pw_name == NULL || all_flags.nflag) {
 			if ((unlen = snprintf(uname, 20, "%u", statp->st_uid)) < 0) {
 				(void)fprintf(stderr, "%s: snprintf error %s\n", getprogname(), strerror(errno));
 				exit(EXIT_FAILURE);
@@ -573,7 +554,7 @@ void cook_entry(FTSENT* ent)
 			exit(EXIT_FAILURE);
 		}
 
-		if (grpp == NULL || grpp->gr_name == NULL || nflag) {
+		if (grpp == NULL || grpp->gr_name == NULL || all_flags.nflag) {
 			
 			if ((gnlen = snprintf(gname, 20, "%u", statp->st_gid)) < 0) {
 				(void)fprintf(stderr, "%s: snprintf error %s\n", getprogname(), strerror(errno));
@@ -601,14 +582,14 @@ void cook_entry(FTSENT* ent)
  */
 void set_output_config()
 {
-	if (iflag) {
+	if (all_flags.iflag) {
 		if ( (max_in_len = snprintf(NULL, 0, "%ld", max_st_ino)) < 0) {
 			(void)fprintf(stderr, "%s: snprintf error %s\n", getprogname(), strerror(errno));
 			exit(EXIT_FAILURE);
 		}
 	}
 
-	if (sflag || lflag || nflag) {
+	if (all_flags.sflag || all_flags.lflag || all_flags.nflag) {
 		if ( (max_blk_len = snprintf(NULL, 0, "%ld", max_st_blocks)) < 0 ) {
 			(void)fprintf(stderr, "%s: snprintf error %s\n", getprogname(), strerror(errno));
 			exit(EXIT_FAILURE);
@@ -616,7 +597,7 @@ void set_output_config()
 		totalblknum = ceil( (double)totalblknum*512/(double)blocksize);
 	}
 
-	if (lflag || nflag) {
+	if (all_flags.lflag || all_flags.nflag) {
 		
 		if ( (max_major_len = snprintf(NULL, 0, "%d", max_major_num)) < 0 ) {
 			(void)fprintf(stderr, "%s: snprintf error %s\n", getprogname(), strerror(errno));
@@ -628,12 +609,12 @@ void set_output_config()
 			exit(EXIT_FAILURE);
 		}
 
-		if (kflag) {
+		if (all_flags.kflag) {
 			if ( (max_sz_len = snprintf(NULL, 0, "%llu", (long long unsigned int)ceil((double)max_st_size/divide_term))) < 0 ) {
 				(void)fprintf(stderr, "%s: snprintf error %s\n", getprogname(), strerror(errno));
 				exit(EXIT_FAILURE);
 			}
-		} else if (hflag) {
+		} else if (all_flags.hflag) {
 
 			double ret = max_st_size;
 			int step = 0;
@@ -717,7 +698,7 @@ void config_output(FTSENT* children)
 			continue;
 		}
 
-		if (!Aflag && !aflag && p->fts_name[0] == '.') {
+		if (!all_flags.Aflag && !all_flags.aflag && p->fts_name[0] == '.') {
 			continue;
 		}
 
@@ -794,9 +775,9 @@ int sortbytime(const FTSENT **obj1, const FTSENT **obj2)
 		return 0;
 	}
 
-	if (cflag) {
+	if (all_flags.cflag) {
 		diff = difftime((*obj1)->fts_statp->st_ctime, (*obj2)->fts_statp->st_ctime);
-	} else if (uflag) {
+	} else if (all_flags.uflag) {
 		diff = difftime((*obj1)->fts_statp->st_atime, (*obj2)->fts_statp->st_atime);
 	} else {
 		diff = difftime((*obj1)->fts_statp->st_mtime, (*obj2)->fts_statp->st_mtime);
@@ -875,9 +856,9 @@ int sortbyrtime(const FTSENT **obj1, const FTSENT **obj2)
 		return 0;
 	}
 
-	if (cflag) {
+	if (all_flags.cflag) {
 		diff = difftime((*obj1)->fts_statp->st_ctime, (*obj2)->fts_statp->st_ctime);
-	} else if (uflag) {
+	} else if (all_flags.uflag) {
 		diff = difftime((*obj1)->fts_statp->st_atime, (*obj2)->fts_statp->st_atime);
 	} else {
 		diff = difftime((*obj1)->fts_statp->st_mtime, (*obj2)->fts_statp->st_mtime);
@@ -924,120 +905,120 @@ main(int argc, char **argv)
 
 	/* some default setting */
 	if (isatty(STDOUT_FILENO)) {
-		qflag = 1;
-		Cflag = 1;
+		all_flags.qflag = 1;
+		all_flags.Cflag = 1;
 	} else {
-		wflag = 1;
-		oneflag = 1;
+		all_flags.wflag = 1;
+		all_flags.oneflag = 1;
 	}
 
 	/*-A always set for super user*/
 	if (getuid() == 0) {
-		Aflag = 1;
+		all_flags.Aflag = 1;
 	}
 
 	while( (c = getopt(argc, argv, "AacdFfhiklnqRrSstuw1xC")) != -1 ) {
 		switch(c) {
 		case 'A':
-			Aflag = 1;
+			all_flags.Aflag = 1;
 			break;
 		case 'a':
-			aflag = 1;
+			all_flags.aflag = 1;
 			break;
 		case 'd':
-			dflag = 1;
+			all_flags.dflag = 1;
 			break;
 		case 'f':
 			comp = NULL;
-			fflag = 1;
+			all_flags.fflag = 1;
 			break;
 		case 'F':
-			Fflag = 1;
+			all_flags.Fflag = 1;
 			break;
 		case 'R':
-			Rflag = 1;
+			all_flags.Rflag = 1;
 			break;
 		case 'i':
-			iflag = 1;
+			all_flags.iflag = 1;
 			break;
 		case 'l':
 			//overwrite
-			nflag = 0;
-			oneflag  = 0;
-			Cflag = 0;
-			xflag = 0;
+			all_flags.nflag = 0;
+			all_flags.oneflag  = 0;
+			all_flags.Cflag = 0;
+			all_flags.xflag = 0;
 
-			lflag = 1;
+			all_flags.lflag = 1;
 			break;
 		case 'n':
 			//overwrite
-			lflag = 0;
-			oneflag = 0;
-			Cflag = 0;
-			xflag = 0;
+			all_flags.lflag = 0;
+			all_flags.oneflag = 0;
+			all_flags.Cflag = 0;
+			all_flags.xflag = 0;
 
-			nflag = 1;
+			all_flags.nflag = 1;
 			break;
 		case 's':
-			sflag = 1;
+			all_flags.sflag = 1;
 			break;
 		case 'S':
 			comp = sortbysize;
-			Sflag = 1;
+			all_flags.Sflag = 1;
 			break;
 		case 'q':
-			wflag = 0;
-			qflag = 1;
+			all_flags.wflag = 0;
+			all_flags.qflag = 1;
 			break;
 		case 'w':
-			qflag = 0;
-			wflag = 1;
+			all_flags.qflag = 0;
+			all_flags.wflag = 1;
 			break;
 		case 't':
 			comp = sortbytime;
-			tflag = 1;
+			all_flags.tflag = 1;
 			break;
 		case '1':
-			lflag = 0;
-			nflag = 0;
-			oneflag = 1;
+			all_flags.lflag = 0;
+			all_flags.nflag = 0;
+			all_flags.oneflag = 1;
 			break;
 		case 'c':
-			uflag = 0;
-			cflag = 1;
+			all_flags.uflag = 0;
+			all_flags.cflag = 1;
 			break;
 		case 'x':
 			//overwirte
-			oneflag = 0;
-			lflag = 0;
-			nflag = 0;
-			Cflag = 0;
+			all_flags.oneflag = 0;
+			all_flags.lflag = 0;
+			all_flags.nflag = 0;
+			all_flags.Cflag = 0;
 
-			xflag = 1;
+			all_flags.xflag = 1;
 			break;
 		case 'C':
 			//overwrite
-			oneflag = 0;
-			lflag = 0;
-			nflag = 0;
-			xflag = 0;
+			all_flags.oneflag = 0;
+			all_flags.lflag = 0;
+			all_flags.nflag = 0;
+			all_flags.xflag = 0;
 
-			Cflag = 1;
+			all_flags.Cflag = 1;
 			break;
 		case 'u':
-			cflag = 0;
-			uflag = 1;
+			all_flags.cflag = 0;
+			all_flags.uflag = 1;
 			break;
 		case 'k':
-			hflag = 0;
-			kflag = 1;
+			all_flags.hflag = 0;
+			all_flags.kflag = 1;
 			break;
 		case 'h':
-			kflag = 0;
-			hflag = 1;
+			all_flags.kflag = 0;
+			all_flags.hflag = 1;
 			break;
 		case 'r':
-			rflag = 1;
+			all_flags.rflag = 1;
 			break;
 		default:
 			usage();
@@ -1059,19 +1040,19 @@ main(int argc, char **argv)
 		blocksize = DEFAULT_BLOCKSIZE;
 	}
 
-	if (kflag) {
+	if (all_flags.kflag) {
 		divide_term = 1024;
 	}
 	
-	if (aflag) {
+	if (all_flags.aflag) {
 		fts_options =  fts_options | FTS_SEEDOT;
 	}
 
 
-	if (rflag) {
-		if (Sflag) {
+	if (all_flags.rflag) {
+		if (all_flags.Sflag) {
 			comp = sortbyrsize;
-		} else if (tflag) {
+		} else if (all_flags.tflag) {
 			comp = sortbyrsize;
 		} else {
 			comp = sortbyname;
@@ -1110,7 +1091,7 @@ main(int argc, char **argv)
 			continue;
 		}
 		
-		if (!dflag && cur->fts_info == FTS_D) {
+		if (!all_flags.dflag && cur->fts_info == FTS_D) {
 			/*leave the directory to the fts_read below*/
 			outputnum++;
 			continue;
@@ -1125,7 +1106,7 @@ main(int argc, char **argv)
 	
 
 	do{
-		if (dflag) {
+		if (all_flags.dflag) {
 			break;
 		}
 		/*
@@ -1162,7 +1143,7 @@ main(int argc, char **argv)
 				// cook_multi_cols();
 				traverse_children(read);
 	
-				if (!Rflag && childrenptr != NULL) {
+				if (!all_flags.Rflag && childrenptr != NULL) {
 					if (fts_set(ftsptr, read, FTS_SKIP) != 0) {
 						(void)fprintf(stderr, "%s: fts_set error %s\n", getprogname(), strerror(errno));
 						exit(EXIT_FAILURE);

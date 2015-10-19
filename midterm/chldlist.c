@@ -1,13 +1,13 @@
-#include "l.h"
+#include "ls.h"
 
 static FNODEP header;
 static FNODEP cur;
 static FNODEP ptr;
 static int count;
 
-void cldlist_init(){
+void cldlist_init() {
 	header = (FNODEP)malloc(sizeof(FNODE));
-	if (header == NULL){
+	if (header == NULL) {
 		fprintf(stderr, "malloc error\n");
 		exit(EXIT_FAILURE);
 	}
@@ -19,18 +19,18 @@ void cldlist_init(){
 	count = 0;
 }
 
-FNODEP cldlist_get_list(){
+FNODEP cldlist_get_list() {
 	return header;
 }
 
-int cldlist_get_count(){
+int cldlist_get_count() {
 	return count;
 }
 
-void cldlist_reset(){
+void cldlist_reset() {
 	FNODEP p = header->next;
 
-	while( p != NULL){
+	while( p != NULL) {
 		p->flag = UNUSED;
 		p = p->next;
 	}	
@@ -40,17 +40,17 @@ void cldlist_reset(){
 	count = 0;
 }
 
-void cldlist_reset_ptr(){
+void cldlist_reset_ptr() {
 	ptr = header;
 }
 
-FNODEP cldlist_get_next(){
+FNODEP cldlist_get_next() {
 	FNODEP ret = ptr->next;
-	if (ret  == NULL){
+	if (ret  == NULL) {
 		return NULL;
 	}
 
-	if ((ret->flag) == UNUSED){
+	if ((ret->flag) == UNUSED) {
 		return NULL;
 	}
 
@@ -58,16 +58,10 @@ FNODEP cldlist_get_next(){
 	return ret;
 }
 
-/*
- * When push_back a Node
- * I donot free the memory but change it status flag
- * to avoid too many malloc/free operation
- */
-
-void cldlist_push_back(FTSENT* ftentryp, char *uname, char *gname){
+void cldlist_push_back(FTSENT* ftentryp, char *uname, char *gname) {
 	FNODEP tmp;
 
-	if (cur->next == NULL){
+	if (cur->next == NULL) {
 		tmp = (FNODEP)malloc(sizeof(FNODE));
 		cur->next = tmp;
 		tmp->next = NULL;
@@ -91,9 +85,9 @@ void cldlist_push_back(FTSENT* ftentryp, char *uname, char *gname){
 	count++;
 }
 
-void cldlist_clear(){
+void cldlist_clear() {
 	FNODEP p;
-	for (p = header; p != NULL;){
+	for (p = header; p != NULL;) {
 		FNODEP tmp;
 		tmp = p;
 		p = p->next;
@@ -101,11 +95,11 @@ void cldlist_clear(){
 	}
 }
 
-FNODEP cldlist_get(int index){
+FNODEP cldlist_get(int index) {
 	FNODEP p = header;
 	int i = 0;
-	for (p = header->next; p != NULL;){
-		if (i == index){
+	for (p = header->next; p != NULL;) {
+		if (i == index) {
 			return p;
 		}
 
